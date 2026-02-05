@@ -1,8 +1,32 @@
-hope love = 0;
+secret Relationship Viability Calculator
 
-maybe(love > 0) {
-    bye(love);
-} moveon {
-    tell_me("Love is non-existent.");
-    bye(0);
+hope calculate_viability(hope texts_received, hope texts_sent) {
+    secret If you send more than you receive... oh no.
+    maybe(texts_sent > texts_received * 2) {
+        then;
+        tell_me("Stage 5 Clinger Alert.");
+        bye(0);
+    }
+    
+    hope ratio = texts_received * 10 / texts_sent;
+    bye(ratio);
 }
+
+hope my_texts = 50;
+hope her_texts = 2;
+
+tell_me("Calculating viability...");
+then;
+
+hope score = calculate_viability(her_texts, my_texts);
+
+maybe(score < 5) {
+   tell_me("Viability Score: Low.");
+   then;
+   tell_me("It is not you, it is... actually, it is you.");
+} moveon {
+   tell_me("Viability Score: Good.");
+   tell_me("Plan the wedding.");
+}
+
+bye(0);

@@ -1,6 +1,7 @@
 CMakeFiles/baby.dir/src/main.cpp.o: \
- /home/arjav-jain/Coding/baby/src/main.cpp /usr/include/stdc-predef.h \
- /usr/include/c++/13/iostream /usr/include/c++/13/bits/requires_hosted.h \
+ /home/kushagra-pandey/Desktop/CODE/Baby-Programming-Language/src/main.cpp \
+ /usr/include/stdc-predef.h /usr/include/c++/13/iostream \
+ /usr/include/c++/13/bits/requires_hosted.h \
  /usr/include/x86_64-linux-gnu/c++/13/bits/c++config.h \
  /usr/include/x86_64-linux-gnu/c++/13/bits/os_defines.h \
  /usr/include/features.h /usr/include/features-time64.h \
@@ -164,12 +165,12 @@ CMakeFiles/baby.dir/src/main.cpp.o: \
  /usr/include/c++/13/bits/stl_vector.h \
  /usr/include/c++/13/bits/stl_bvector.h \
  /usr/include/c++/13/bits/vector.tcc \
- /home/arjav-jain/Coding/baby/src/types.hpp \
- /home/arjav-jain/Coding/baby/src/tokenizer.hpp \
- /home/arjav-jain/Coding/baby/src/parser.hpp \
- /home/arjav-jain/Coding/baby/src/arena.hpp /usr/include/c++/13/variant \
- /usr/include/c++/13/bits/parse_numbers.h \
- /home/arjav-jain/Coding/baby/src/generation.hpp \
+ /home/kushagra-pandey/Desktop/CODE/Baby-Programming-Language/src/types.hpp \
+ /home/kushagra-pandey/Desktop/CODE/Baby-Programming-Language/src/tokenizer.hpp \
+ /home/kushagra-pandey/Desktop/CODE/Baby-Programming-Language/src/parser.hpp \
+ /home/kushagra-pandey/Desktop/CODE/Baby-Programming-Language/src/arena.hpp \
+ /usr/include/c++/13/variant /usr/include/c++/13/bits/parse_numbers.h \
+ /home/kushagra-pandey/Desktop/CODE/Baby-Programming-Language/src/generation.hpp \
  /usr/include/c++/13/unordered_map \
  /usr/include/c++/13/bits/unordered_map.h \
  /usr/include/c++/13/bits/hashtable.h \
