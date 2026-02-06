@@ -20,12 +20,12 @@ COPY . .
 RUN mkdir -p build && cd build && cmake .. && make
 
 # Build Frontend
-WORKDIR /app/playground/client
+WORKDIR /app/kitchen/client
 RUN npm install
 RUN npm run build
 
 # Setup Backend
-WORKDIR /app/playground/server
+WORKDIR /app/kitchen/server
 RUN npm install
 
 # Expose port (Render sets PORT env var)
