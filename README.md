@@ -1,6 +1,6 @@
 # Cook Programming Language
 
-welcome to **Cook**, the language that understands your relationship status. Why code in binary when you can code in _complicated feelings_?
+welcome to **Cook**, the language that understands your **taste buds**. Why code in binary when you can code in layers of flavor?
 
 ## 🍳 What is Cook?
 
