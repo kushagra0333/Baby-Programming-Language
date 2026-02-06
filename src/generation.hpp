@@ -9,13 +9,23 @@
 #include <vector>
 
 
+#pragma once
+#include "parser.hpp"
+#include "tokenizer.hpp"
+#include <sstream>
+#include <unordered_map>
+#include <cassert>
+#include <map>
+#include <algorithm>
+#include <vector>
+
+
 class Generator{
     private:
         struct var{
             std::string name;
             size_t stack_loc;
         };
-        // Removed duplicate label count line 18
         const NodeProgram m_prog;   
         std::stringstream asm_code;
         std::vector<var> m_vars {};
@@ -76,8 +86,6 @@ class Generator{
                 void operator()(const NodeTermIdent* term_ident)const{
                     const std::string var_name = term_ident->ident.value.value();
                     
-                    // Logic removed that incorrectly errored on declared variables
-
                     // Check if it's a string variable
                     if(gen->m_str_vars.find(var_name) != gen->m_str_vars.end()){
                        const std::string label = gen->m_str_vars.at(var_name);
@@ -129,14 +137,6 @@ class Generator{
                 }
 
                 void operator()(const NodeTermFuncCall* term_call) const{
-                    // Push arguments in reverse order (Convention preference, but for stack it doesn't matter as long as we pop consistently)
-                    // Let's push left-to-right (first arg pushed first). 
-                    // To access them in callee: [rbp + 16 + (N-1-i)*8] ?
-                    // Actually, if we push Arg1, Arg2. Stack: Arg2 (top), Arg1.
-                    // Callee RBP+16 is Arg2. RBP+24 is Arg1.
-                    // Let's invert push order so Arg1 is at top?
-                    // Standard C (cdecl) pushes Right-to-Left. ArgN ... Arg1. Stack: Arg1 (top).
-                    // let's do that.
                     for(auto it = term_call->args.rbegin(); it != term_call->args.rend(); ++it)
                     {
                         gen->gen_expr(*it);
@@ -301,9 +301,9 @@ class Generator{
             struct StmtVisitor{
                 Generator* gen;
                 
-                void operator()(NodeStmtExit* stmt_exit) const
+                void operator()(NodeStmtKitchenClosed* stmt_closed) const
                 {
-                    gen->gen_expr(stmt_exit->expr);
+                    gen->gen_expr(stmt_closed->expr);
                     if(gen->m_inside_func)
                     {
                         // Return from function
@@ -319,20 +319,65 @@ class Generator{
                         gen->asm_code << "    syscall\n";
                     }
                 }
-                void operator()(NodeStmtHope* stmt_hope) const
+                void operator()(NodeStmtFinish* stmt_finish) const
                 {
-                    auto scope_start = gen->m_scope.empty() ? gen->m_vars.begin() : gen->m_vars.begin() + gen->m_scope.back();
-                    auto it = std::find_if(scope_start, gen->m_vars.end(), [&](const var& var){
-                        return var.name == stmt_hope->ident.value.value();
-                    });
-                    if(it != gen->m_vars.end())
+                    gen->gen_expr(stmt_finish->expr);
+                    gen->pop("rax"); // Result in rax
+                    gen->asm_code << "    leave\n"; // cleanup stack frame
+                    gen->asm_code << "    ret\n";
+                }
+                void operator()(NodeStmtIngredient* stmt_ingredient) const
+                {
+                     // Check if this is a string declaration
+                    const std::string var_name = stmt_ingredient->ident.value.value();
+                    
+                    bool is_string = false;
+                    // Try to detect string literal
+                     if(std::holds_alternative<NodeTerm*>(stmt_ingredient->expr->var)){
+                        NodeTerm* term = std::get<NodeTerm*>(stmt_ingredient->expr->var);
+                        if(std::holds_alternative<NodeTermStringLit*>(term->var)){
+                             is_string = true;
+                        }
+                     }
+
+                    if(is_string)
                     {
-                        std::cerr<<"Variable already declared in this scope: " << stmt_hope->ident.value.value() <<std::endl;
-                        exit(EXIT_FAILURE);
+                         if(gen->m_str_vars.find(var_name) != gen->m_str_vars.end())
+                        {
+                            std::cerr<<"String variable already declared: " << var_name <<std::endl;
+                            exit(EXIT_FAILURE);
+                        }
+                         NodeTerm* term = std::get<NodeTerm*>(stmt_ingredient->expr->var);
+                         NodeTermStringLit* str_lit = std::get<NodeTermStringLit*>(term->var);
+                         const std::string s = str_lit->string_lit.value.value();
+                         std::string label;
+                         if(gen->m_str_labels.find(s) == gen->m_str_labels.end()){
+                            label = "msg_" + std::to_string(gen->m_str_count++);
+                            gen->m_str_labels.emplace(s, label);
+                            gen->m_str_lens.emplace(s, s.size());
+                         } else {
+                            label = gen->m_str_labels.at(s);
+                         }
+                         gen->m_str_vars.emplace(var_name, label);
+                    }
+                    else
+                    {
+                        // Integer declaration
+                        auto scope_start = gen->m_scope.empty() ? gen->m_vars.begin() : gen->m_vars.begin() + gen->m_scope.back();
+                        auto it = std::find_if(scope_start, gen->m_vars.end(), [&](const var& var){
+                            return var.name == var_name;
+                        });
+                        if(it != gen->m_vars.end())
+                        {
+                            std::cerr<<"Variable already declared in this scope: " << var_name <<std::endl;
+                            exit(EXIT_FAILURE);
+                        }
+
+                        gen->m_vars.push_back({.name=var_name, .stack_loc=gen->m_stack_size});
+                        gen->gen_expr(stmt_ingredient->expr);
                     }
 
-                    gen->m_vars.push_back({.name=stmt_hope->ident.value.value(), .stack_loc=gen->m_stack_size});
-                    gen->gen_expr(stmt_hope->expr);
+
                 }
 
                 void operator()(const NodeScope* scope) const
@@ -340,21 +385,21 @@ class Generator{
                     gen->gen_scope(scope);
                 }
 
-                void operator()(NodeStmtMaybe* stmt_maybe) const {
+                void operator()(NodeStmtTaste* stmt_taste) const {
                     std::string label_end = gen->create_label();
                     std::string label_next = gen->create_label();
 
                     // IF
-                    gen->gen_expr(stmt_maybe->condition);
+                    gen->gen_expr(stmt_taste->condition);
                     gen->pop("rax");
                     gen->asm_code << "    test rax, rax \n";
                     gen->asm_code << "    jz " << label_next << "\n";
-                    gen->gen_scope(stmt_maybe->scope);
+                    gen->gen_scope(stmt_taste->scope);
                     gen->asm_code << "    jmp " << label_end << "\n";
                     gen->asm_code << label_next << ":\n";
 
                     // ELIFS
-                    for(const auto* elif : stmt_maybe->elifs)
+                    for(const auto* elif : stmt_taste->elifs)
                     {
                         label_next = gen->create_label();
                         gen->gen_expr(elif->condition);
@@ -367,15 +412,15 @@ class Generator{
                     }
 
                     // ELSE
-                    if(stmt_maybe->else_stmt.has_value())
+                    if(stmt_taste->else_stmt.has_value())
                     {
-                        gen->gen_scope(stmt_maybe->else_stmt.value()->scope);
+                        gen->gen_scope(stmt_taste->else_stmt.value()->scope);
                     }
 
                     gen->asm_code << label_end << ":\n";
                 }
 
-                void operator()(NodeStmtWait* stmt) const {
+                void operator()(NodeStmtSimmer* stmt) const {
                     std::string label_start = gen->create_label();
                     std::string label_end = gen->create_label();
                     gen->asm_code << label_start << ":\n";
@@ -388,47 +433,16 @@ class Generator{
                     gen->asm_code << label_end << ":\n";
                 }
 
-                void operator()(NodeStmtMoveOn* stmt) const {
-                    // This should not be visited directly anymore via proper parsing, 
-                    // but keeping basic impl just in case or empty
+                void operator()(NodeStmtServe* stmt) const {
+                    // Should not be visited directly
                     gen->gen_scope(stmt->scope);
                 }
                
-                 void operator()(NodeStmtOrMaybe* stmt) const {
+                 void operator()(NodeStmtRetaste* stmt) const {
                     // Should not be visited directly
                  }
 
 
-                void operator()(NodeStmtDillusion* stmt_dillusion) const
-                {
-                    const std::string var_name = stmt_dillusion->ident.value.value();
-                    if(gen->m_str_vars.find(var_name) != gen->m_str_vars.end())
-                    {
-                        std::cerr<<"String variable already declared: " << var_name <<std::endl;
-                        exit(EXIT_FAILURE);
-                    }
-
-                    // Extract the string from the expression
-                    if(std::holds_alternative<NodeTerm*>(stmt_dillusion->expr->var)){
-                        NodeTerm* term = std::get<NodeTerm*>(stmt_dillusion->expr->var);
-                        if(std::holds_alternative<NodeTermStringLit*>(term->var)){
-                            NodeTermStringLit* str_lit = std::get<NodeTermStringLit*>(term->var);
-                            const std::string s = str_lit->string_lit.value.value();
-                            std::string label;
-                            if(gen->m_str_labels.find(s) == gen->m_str_labels.end()){
-                                label = "msg_" + std::to_string(gen->m_str_count++);
-                                gen->m_str_labels.emplace(s, label);
-                                gen->m_str_lens.emplace(s, s.size());
-                            } else {
-                                label = gen->m_str_labels.at(s);
-                            }
-                            gen->m_str_vars.emplace(var_name, label);
-                            return;
-                        }
-                    }
-                    std::cerr<<"String variable must be initialized with a string literal"<<std::endl;
-                    exit(EXIT_FAILURE);
-                }
                 void operator()(NodeStmtAssign* stmt_assign) const
                 {
                     auto it = std::find_if(gen->m_vars.rbegin(), gen->m_vars.rend(), [&](const var& var){
@@ -444,19 +458,22 @@ class Generator{
                     }
                     else
                     {
-                         // Not found in current scope - Implicitly declare it (Shadowing)
+                        // Not found - Error in strict mode, or implicit declaration? 
+                        // Original code allowed implicit declaration in assignment ELSE clause? 
+                        // Original code: "Not found in current scope - Implicitly declare it (Shadowing) - gen->m_vars.push_back..." 
+                        // We will keep that behavior
                         gen->m_vars.push_back({.name=stmt_assign->ident.value.value(), .stack_loc=gen->m_stack_size});
                         gen->gen_expr(stmt_assign->expr);
                     }
                 }
 
-                void operator()(NodeStmtTellMe* stmt_tell_me) const
+                void operator()(NodeStmtPlate* stmt_plate) const
                 {
                     bool is_string = false;
                     
                     // Check if it's a string literal
-                    if(std::holds_alternative<NodeTerm*>(stmt_tell_me->expr->var)){
-                        NodeTerm* term = std::get<NodeTerm*>(stmt_tell_me->expr->var);
+                    if(std::holds_alternative<NodeTerm*>(stmt_plate->expr->var)){
+                        NodeTerm* term = std::get<NodeTerm*>(stmt_plate->expr->var);
                         if(std::holds_alternative<NodeTermStringLit*>(term->var)){
                             is_string = true;
                         }
@@ -470,14 +487,14 @@ class Generator{
                         }
                     }
                     
-                    gen->gen_expr(stmt_tell_me->expr);
+                    gen->gen_expr(stmt_plate->expr);
                     if(!is_string){
                         gen->pop("rdi");
                         gen->asm_code << "    call print_int\n";
                     }
                 }
 
-                void operator()(NodeStmtThen* stmt_then) const
+                void operator()(NodeStmtRest* stmt_rest) const
                 {
                     gen->asm_code << "    mov rax, 1\n";
                     gen->asm_code << "    mov rdi, 1\n";
@@ -488,9 +505,7 @@ class Generator{
 
                 void operator()(NodeFuncDef* func_def) const
                 {
-                    // Function definition should not be executed inline in main flow. 
-                    // It is handled by the first pass in gen_program or skipped if we iterate naively.
-                    // We will generate the code here, but we assume gen_program calls this at the right time (outside _start).
+                    // Function definition
                     
                     std::string func_label = "func_" + func_def->name.value.value();
                     gen->asm_code << "\n" << func_label << ":\n";
@@ -504,26 +519,19 @@ class Generator{
                     gen->m_vars.clear();
                     gen->m_inside_func = true;
                     
-                    // Bind Arguments
-                    // Stack at entry: [RetIP] [OldRBP] [Arg1] [Arg2] ... (Assuming Right-to-Left push)
-                    // Arg1 is at RBP+16. Arg2 is at RBP+24.
-                    // We want to access them as if they are local variables.
-                    // We can Copy them to local stack or map them.
-                    // Mapping is complex because 'gen_term' expects 'rsp + offset'. 
-                    // Simplest: Push them from [rbp+offset] to stack to make them local vars.
-                    
+                    // Arguments
                     size_t arg_count = func_def->args.size();
                     for(size_t i=0; i<arg_count; ++i)
                     {
                         // Arg i (0-index) is at RBP + 16 + i*8
                         gen->asm_code << "    push QWORD [rbp + " << 16 + i*8 << "]\n";
                         gen->m_stack_size++;
-                        gen->m_vars.push_back({.name=func_def->args[i].second.value.value(), .stack_loc=gen->m_stack_size-1}); // stack_loc matches current pos
+                        gen->m_vars.push_back({.name=func_def->args[i].second.value.value(), .stack_loc=gen->m_stack_size-1}); 
                     }
                     
                     gen->gen_scope(func_def->scope);
                     
-                    // Default return 0 if no generic return found (just safety)
+                    // Default return 0 
                     gen->asm_code << "    mov rax, 0\n";
                     gen->asm_code << "    leave\n";
                     gen->asm_code << "    ret\n";

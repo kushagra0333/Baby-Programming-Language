@@ -10,125 +10,121 @@ import {
   Terminal,
   Cpu,
   AlertCircle,
-  Heart,
-  Zap,
+  Utensils,
+  Flame,
   MessageSquare,
   HelpCircle,
   Code2,
+  ChefHat,
+  ArrowRight
 } from "lucide-react";
 import "./index.css";
 
-const DEFAULT_CODE = `secret Relationship Viability Calculator
+const DEFAULT_CODE = `note Relationship Viability Calculator
 
-hope calculate_viability(hope texts_received, hope texts_sent) {
-    secret If you send more than you receive... oh no.
-    maybe(texts_sent > texts_received * 2) {
-        then;
-        tell_me("Stage 5 Clinger Alert.");
-        bye(0);
+recipe calculate_viability(ingredient texts_received, ingredient texts_sent) {
+    note If you send more than you receive... oh no.
+    taste(texts_sent > texts_received * 2) {
+        rest;
+        plate("Stage 5 Clinger Alert.");
+        kitchen_closed(0);
     }
     
-    hope ratio = texts_received * 10 / texts_sent;
-    bye(ratio);
+    ingredient ratio = texts_received * 10 / texts_sent;
+    finish(ratio);
 }
 
-hope my_texts = 50;
-hope her_texts = 2;
+ingredient my_texts = 50;
+ingredient her_texts = 2;
 
-tell_me("Calculating viability...");
-then;
+plate("Calculating viability...");
+rest;
 
-hope score = calculate_viability(her_texts, my_texts);
+ingredient score = calculate_viability(her_texts, my_texts);
 
-maybe(score < 5) {
-   tell_me("Viability Score: Low.");
-   then;
-   tell_me("It is not you, it is... actually, it is you.");
-} moveon {
-   tell_me("Viability Score: Good.");
-   tell_me("Plan the wedding.");
+taste(score < 5) {
+   plate("Viability Score: Low.");
+   rest;
+   plate("It is not you, it is... actually, it is you.");
+} serve {
+   plate("Viability Score: Good.");
+   plate("Plan the wedding.");
 }
 
-bye(0);
+kitchen_closed(0);
 `;
 
 const CHEAT_SHEET = [
   {
-    cmd: "hope",
+    cmd: "ingredient",
     desc: "Declare a number variable (because we all need hope).",
-    ex: "hope x = 10;",
-    icon: <Heart size={18} />,
+    ex: "ingredient x = 10;",
+    icon: <Utensils size={18} />,
   },
   {
-    cmd: "dillusion",
-    desc: "Declare a string variable (it is all just an illusion).",
-    ex: 'dillusion s = "hi";',
-    icon: <MessageSquare size={18} />,
-  },
-  {
-    cmd: "maybe",
+    cmd: "taste",
     desc: "Start a conditional block (if).",
-    ex: "maybe(x > 5) { ... }",
+    ex: "taste(x > 5) { ... }",
     icon: <HelpCircle size={18} />,
   },
   {
-    cmd: "ormaybe",
+    cmd: "retaste",
     desc: "Else-if condition.",
-    ex: "ormaybe(x == 5) { ... }",
+    ex: "retaste(x == 5) { ... }",
     icon: <HelpCircle size={18} />,
   },
   {
-    cmd: "moveon",
+    cmd: "serve",
     desc: "Else block (time to move on).",
-    ex: "moveon { ... }",
-    icon: <Zap size={18} />,
+    ex: "serve { ... }",
+    icon: <ArrowRight size={18} />,
   },
   {
-    cmd: "wait",
+    cmd: "simmer",
     desc: "While loop (keep waiting until condition fails).",
-    ex: "wait(x > 0) { ... }",
-    icon: <Zap size={18} />,
+    ex: "simmer(x > 0) { ... }",
+    icon: <Flame size={18} />,
   },
   {
-    cmd: "tell_me",
+    cmd: "plate",
     desc: "Print something to the output.",
-    ex: 'tell_me("hello");',
+    ex: 'plate("hello");',
     icon: <Terminal size={18} />,
   },
   {
-    cmd: "then",
+    cmd: "rest",
     desc: "Print a new line (take a breath).",
-    ex: "then;",
+    ex: "rest;",
     icon: <Terminal size={18} />,
   },
   {
-    cmd: "bye",
+    cmd: "kitchen_closed",
     desc: "Exit program 0 / Return value in func.",
-    ex: "bye(0);",
-    icon: <Zap size={18} />,
+    ex: "kitchen_closed(0);",
+    icon: <Flame size={18} />,
   },
   {
-    cmd: "func",
+    cmd: "finish",
+    desc: "Return value in func.",
+    ex: "finish(0);",
+    icon: <ArrowRight size={18} />,
+  },
+  {
+    cmd: "recipe",
     desc: "Define function.",
-    ex: "hope add(hope a) { bye(a+1); }",
+    ex: "recipe add(ingredient a) { finish(a+1); }",
     icon: <Code2 size={18} />,
   },
   {
-    cmd: "call",
-    desc: "Call function.",
-    ex: "add(1);",
-    icon: <Code2 size={18} />,
-  },
-  {
-    cmd: "secret",
+    cmd: "note",
     desc: "Single line comment (shhh).",
-    ex: "secret hidden text",
+    ex: "note hidden text",
     icon: <MessageSquare size={18} />,
   },
   {
-    cmd: "hide",
+    cmd: "cookbook",
     desc: "Multi-line comment block.",
-    ex: "hide ... hide",
+    ex: "cookbook ... cookbook",
     icon: <MessageSquare size={18} />,
   },
 ];
@@ -184,9 +180,9 @@ function App() {
       {/* Header */}
       <header className="header-container">
         <div className="header-branding">
-          <h1 className="main-title">baby.</h1>
+          <h1 className="main-title">cook.</h1>
           <div className="subtitle">
-            The chillest programming language for singles.
+            The chillest programming language for chefs.
           </div>
         </div>
         <button className="btn-icon" onClick={toggleTheme} title="Toggle Theme">
@@ -204,7 +200,7 @@ function App() {
               <span className="dot yellow"></span>
               <span className="dot green"></span>
             </div>
-            <span style={{ marginLeft: "10px" }}>playground.by</span>
+            <span style={{ marginLeft: "10px" }}>playground.cook</span>
           </div>
           <div className="toolbar-actions">
             {status === "loading" && <span className="spinner"></span>}
@@ -213,7 +209,7 @@ function App() {
               className="btn-secondary"
               onClick={() =>
                 window.open(
-                  "https://github.com/kushagra0333/Baby-Programming-language",
+                  "https://github.com/kushagra0333/Cook-Programming-Language",
                   "_blank",
                 )
               }
@@ -225,7 +221,7 @@ function App() {
               onClick={handleRun}
               disabled={status === "loading"}
             >
-              <Play size={16} fill="currentColor" /> Run Code
+              <Play size={16} fill="currentColor" /> Cook Code
             </button>
           </div>
         </div>
@@ -262,18 +258,19 @@ function App() {
                 smoothScrolling: true,
               }}
               onMount={(editor, monaco) => {
-                monaco.languages.register({ id: "baby" });
-                monaco.languages.setMonarchTokensProvider("baby", {
+                monaco.languages.register({ id: "cook" });
+                monaco.languages.setMonarchTokensProvider("cook", {
                   keywords: [
-                    "hope",
-                    "maybe",
-                    "ormaybe",
-                    "moveon",
-                    "wait",
-                    "bye",
-                    "tell_me",
-                    "dillusion",
-                    "then",
+                    "ingredient",
+                    "taste",
+                    "retaste",
+                    "serve",
+                    "simmer",
+                    "kitchen_closed",
+                    "plate",
+                    "rest",
+                    "recipe",
+                    "finish",
                   ],
                   tokenizer: {
                     root: [
@@ -295,9 +292,8 @@ function App() {
                           next: "@string",
                         },
                       ],
-                      [/\/\/.*/, "comment"],
-                      [/hide[\s\S]*?hide/, "comment"],
-                      [/secret.*/, "comment"],
+                      [/note.*/, "comment"],
+                      [/cookbook[\s\S]*?cookbook/, "comment"],
                       [/[{}()\[\]]/, "@brackets"],
                       [/[=><!]+/, "operator"],
                     ],
@@ -314,33 +310,31 @@ function App() {
                     ],
                   },
                 });
-                monaco.editor.defineTheme("baby-theme", {
+                monaco.editor.defineTheme("cook-theme", {
                   base: "vs-dark",
                   inherit: true,
                   rules: [
                     {
                       token: "keyword",
-                      foreground: "ff007c",
+                      foreground: "f97316", // Orange 500
                       fontStyle: "bold",
                     },
-                    { token: "identifier", foreground: "00f2ea" },
-                    { token: "string", foreground: "e0af68" },
+                    { token: "identifier", foreground: "fbbf24" }, // Amber 400
+                    { token: "string", foreground: "a3e635" }, // Lime 400
                     {
                       token: "comment",
-                      foreground: "565f89",
+                      foreground: "78716c", // Stone 500
                       fontStyle: "italic",
                     },
-                    { token: "number", foreground: "ff9e64" },
-                    { token: "operator", foreground: "89ddff" },
+                    { token: "number", foreground: "fca5a5" }, // Red 300
+                    { token: "operator", foreground: "fdba74" }, // Orange 300
                   ],
                   colors: {
-                    "editor.background": "#1e293b", // Match bg-secondary
-                    "editor.foreground": "#c0caf5",
+                    "editor.background": "#1c1917", // Stone 900
+                    "editor.foreground": "#f5f5f4", // Stone 100
                   },
                 });
-                monaco.editor.setModelLanguage(editor.getModel(), "baby");
-                // Note: We might want two themes for monaco eventually, but for now vs-dark works well with the dark theme.
-                // Light theme might need a standard vs-light.
+                monaco.editor.setModelLanguage(editor.getModel(), "cook");
               }}
             />
           </div>
@@ -410,7 +404,7 @@ function App() {
               {activeTab === "errors" && (
                 <div className="output-content error">
                   {errors || (
-                    <span style={{ opacity: 0.5 }}>No errors! Good job.</span>
+                    <span style={{ opacity: 0.5 }}>No errors! Good chef.</span>
                   )}
                 </div>
               )}

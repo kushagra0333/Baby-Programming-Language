@@ -4,13 +4,13 @@
 #include <optional>
 
 enum class TokenType {
-    bye, // exit
+    kitchen_closed, // exit
     int_lit,
     semi,
     open_paren,
     close_paren,
     ident,
-    hope, //int variable declaration
+    ingredient, // variable declaration
     eq,
     plus,
     mul,
@@ -18,24 +18,25 @@ enum class TokenType {
     div,
     open_curly, // {
     close_curly, // }
-    tell_me, // print
+    plate, // print
     string_lit,
     double_quotes,
-    dillusion, // string literal
-    maybe, // if condition
-    moveon, // else condition
-    wait, // while loop
-    ormaybe, // else if
-    hide, // multiline comment
-    secret, // single line comment
+    recipe, // function definition
+    taste, // if condition
+    serve, // else condition
+    simmer, // while loop
+    retaste, // else if
+    cookbook, // multiline comment
+    note, // single line comment
     eq_eq, // ==
     neq, // !=
     lt, // <
     gt, // >
     lte, // <=
     gte, // >=
-    then_tok, // newline
-    comma // ,
+    rest, // newline
+    comma, // ,
+    finish // return
 };
 
 bool is_bin_op(TokenType type){

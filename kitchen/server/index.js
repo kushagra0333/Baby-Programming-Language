@@ -10,14 +10,9 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
-const COMPILER_PATH = path.resolve(__dirname, '../../build/baby');
-const TEMP_FILE = path.resolve(__dirname, 'temp.by');
+const COMPILER_PATH = path.resolve(__dirname, '../../build/cook');
 const OUT_ASM = 'out.asm'; // Compiler generates this in CWD
 const OUT_EXEC = './out'; // Compiler generates this in CWD
-
-// Ensure we are working in the server directory so compiler outputs are contained
-// Actually, the compiler generates outputs in CWD. So we should run exec with cwd options.
-
 
 // Serve static frontend files
 app.use(express.static(path.join(__dirname, '../client/dist')));
@@ -27,18 +22,17 @@ app.post('/compile', (req, res) => {
     
     // Create a unique temporary directory for this request
     const uniqueId = Math.random().toString(36).substring(2, 15);
-    const tempDir = path.resolve(os.tmpdir(), `baby_compile_${uniqueId}`);
+    const tempDir = path.resolve(os.tmpdir(), `cook_compile_${uniqueId}`);
     
     try {
         if (!fs.existsSync(tempDir)) {
             fs.mkdirSync(tempDir);
         }
 
-        const tempFile = path.join(tempDir, 'temp.by');
+        const tempFile = path.join(tempDir, 'temp.cook');
         fs.writeFileSync(tempFile, code);
 
         // Run compiler with cwd = tempDir
-        // The compiler generates 'out.asm' and 'out' in the current working directory
         exec(`${COMPILER_PATH} ${tempFile}`, { cwd: tempDir }, (error, stdout, stderr) => {
             if (error || stderr) {
                 // Compilation failed
@@ -66,7 +60,7 @@ app.post('/compile', (req, res) => {
                 let runtimeError = null;
 
                 if (runError && runError.code !== undefined && !runStderr) {
-                     // Non-zero exit is fine (e.g. bye(1))
+                     // Non-zero exit is fine
                 } else if (runError) {
                     runtimeError = runStderr || runError.message;
                 }

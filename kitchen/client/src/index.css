@@ -1,21 +1,21 @@
 @import url("https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap");
 
 :root {
-  /* Default Dark Mode */
-  --bg-primary: #0f172a;
-  --bg-secondary: #1e293b;
-  --bg-tertiary: #334155;
-  --text-primary: #f1f5f9;
-  --text-secondary: #94a3b8;
-  --text-accent: #f472b6;
+  /* Default Dark Mode (Cast Iron Theme) */
+  --bg-primary: #1c1917; /* Warm Dark Grey */
+  --bg-secondary: #292524; /* Lighter Warm Grey */
+  --bg-tertiary: #44403c; /* Stone Grey */
+  --text-primary: #f5f5f4; /* Stone 100 */
+  --text-secondary: #a8a29e; /* Stone 400 */
+  --text-accent: #fbbf24; /* Amber 400 */
 
-  --accent-primary: #ec4899; /* Pink-500 */
-  --accent-secondary: #d946ef; /* Fuchsia-500 */
-  --accent-hover: #db2777;
+  --accent-primary: #f97316; /* Orange-500 */
+  --accent-secondary: #ef4444; /* Red-500 */
+  --accent-hover: #ea580c; /* Orange-600 */
 
-  --border-color: #334155;
-  --card-bg: #1e293b;
-  --card-hover: #293548;
+  --border-color: #44403c;
+  --card-bg: #292524;
+  --card-hover: #44403c;
 
   --font-main: "Outfit", sans-serif;
   --font-mono: "JetBrains Mono", monospace;
@@ -27,20 +27,21 @@
 }
 
 [data-theme="light"] {
-  --bg-primary: #f8fafc;
+  /* Light Mode (Kitchen Counter Theme) */
+  --bg-primary: #fff7ed; /* Orange 50 */
   --bg-secondary: #ffffff;
-  --bg-tertiary: #e2e8f0;
-  --text-primary: #0f172a;
-  --text-secondary: #64748b;
-  --text-accent: #db2777;
+  --bg-tertiary: #fed7aa; /* Orange 200 */
+  --text-primary: #431407; /* Brown 900 */
+  --text-secondary: #78350f; /* Brown 800 */
+  --text-accent: #ea580c; /* Orange 600 */
 
-  --accent-primary: #ec4899;
-  --accent-secondary: #d946ef;
-  --accent-hover: #be185d;
+  --accent-primary: #f97316;
+  --accent-secondary: #dc2626;
+  --accent-hover: #c2410c;
 
-  --border-color: #e2e8f0;
+  --border-color: #fed7aa;
   --card-bg: #ffffff;
-  --card-hover: #f1f5f9;
+  --card-hover: #fff7ed;
 }
 
 * {

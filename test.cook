@@ -1,0 +1,37 @@
+recipe add(ingredient a, ingredient b) {
+    finish(a + b);
+}
+
+note this is a single line comment
+note This is also a valid comment
+
+ingredient x = 10;
+ingredient y = 20;
+
+cookbook
+This is a multiline comment 
+that spans multiple lines
+cookbook
+
+ingredient result = add(x, y);
+plate(result);
+
+ingredient name = "Chef";
+plate(name);
+rest;
+
+taste(result > 20) {
+    plate("Result is greater than 20");
+    rest;
+} serve {
+    plate("Result is small");
+    rest;
+}
+
+ingredient i = 0;
+simmer(i < 5) {
+    plate(i);
+    i = i + 1;
+}
+
+kitchen_closed(0);

@@ -33,49 +33,49 @@ public:
                 {
                     buf.push_back(consume());
                 }
-                if(buf=="bye")
+                if(buf=="kitchen_closed")
                 {
-                    tokens.push_back({.type=TokenType::bye, .line=line, .col=col});
+                    tokens.push_back({.type=TokenType::kitchen_closed, .line=line, .col=col});
                     buf.clear();
                     continue;
                 }
-                else if(buf=="hope")
+                else if(buf=="ingredient")
                 {
-                    tokens.push_back({.type=TokenType::hope, .line=line, .col=col});
+                    tokens.push_back({.type=TokenType::ingredient, .line=line, .col=col});
                     buf.clear();
                     continue;
                 }
-                else if(buf=="tell_me")
+                else if(buf=="plate")
                 {
-                    tokens.push_back({.type=TokenType::tell_me, .line=line, .col=col});
+                    tokens.push_back({.type=TokenType::plate, .line=line, .col=col});
                     buf.clear();
                     continue;
                 }
-                else if(buf=="dillusion")
+                else if(buf=="recipe")
                 {
-                    tokens.push_back({.type=TokenType::dillusion, .line=line, .col=col});
+                    tokens.push_back({.type=TokenType::recipe, .line=line, .col=col});
                     buf.clear();
                     continue;
                 }
-                else if(buf=="maybe")
+                else if(buf=="taste")
                 {
-                    tokens.push_back({.type=TokenType::maybe, .line=line, .col=col});
+                    tokens.push_back({.type=TokenType::taste, .line=line, .col=col});
                     buf.clear();
                     continue;
                 }
-                else if(buf=="ormaybe")
+                else if(buf=="retaste")
                 {
-                    tokens.push_back({.type=TokenType::ormaybe, .line=line, .col=col});
+                    tokens.push_back({.type=TokenType::retaste, .line=line, .col=col});
                     buf.clear();
                     continue;
                 }
-                else if(buf=="then")
+                else if(buf=="rest")
                 {
-                    tokens.push_back({.type=TokenType::then_tok, .line=line, .col=col});
+                    tokens.push_back({.type=TokenType::rest, .line=line, .col=col});
                     buf.clear();
                     continue;
                 }
-                else if(buf=="secret")
+                else if(buf=="note")
                 {
                     while(peek().has_value() && peek().value() != '\n')
                     {
@@ -84,27 +84,38 @@ public:
                     buf.clear();
                     continue;
                 }
-                else if(buf=="moveon")
+                else if(buf=="serve")
                 {
-                    tokens.push_back({.type=TokenType::moveon, .line=line, .col=col});
+                    tokens.push_back({.type=TokenType::serve, .line=line, .col=col});
                     buf.clear();
                     continue;
                 }
-                else if(buf=="wait")
+                else if(buf=="simmer" || buf=="stir" || buf=="boil" || buf=="cook_while")
                 {
-                    tokens.push_back({.type=TokenType::wait, .line=line, .col=col});
+                    tokens.push_back({.type=TokenType::simmer, .line=line, .col=col});
                     buf.clear();
                     continue;
                 }
-                else if(buf=="hide")
+                else if(buf=="finish")
+                {
+                    tokens.push_back({.type=TokenType::finish, .line=line, .col=col});
+                    buf.clear();
+                    continue;
+                }
+                else if(buf=="cookbook")
                 {
                     buf.clear();
                     while(peek().has_value()) {
-                         if(peek().value() == 'h' && 
-                            peek(1).has_value() && peek(1).value() == 'i' &&
-                            peek(2).has_value() && peek(2).value() == 'd' && 
-                            peek(3).has_value() && peek(3).value() == 'e')
+                         if(peek().value() == 'c' && 
+                            peek(1).has_value() && peek(1).value() == 'o' &&
+                            peek(2).has_value() && peek(2).value() == 'o' && 
+                            peek(3).has_value() && peek(3).value() == 'k' &&
+                            peek(4).has_value() && peek(4).value() == 'b' &&
+                            peek(5).has_value() && peek(5).value() == 'o' &&
+                            peek(6).has_value() && peek(6).value() == 'o' &&
+                            peek(7).has_value() && peek(7).value() == 'k')
                          {
+                             consume(); consume(); consume(); consume();
                              consume(); consume(); consume(); consume();
                              break;
                          }

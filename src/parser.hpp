@@ -90,11 +90,11 @@ struct NodeExpr{
     std::variant<NodeTerm*, NodeBinExpr*> var;
 };
 
-struct NodeStmtExit{
+struct NodeStmtKitchenClosed{
     NodeExpr* expr;
 };
 
-struct NodeStmtHope{
+struct NodeStmtIngredient{
     Token ident;
     NodeExpr* expr;
 };
@@ -104,38 +104,33 @@ struct NodeScope
     std::vector<NodeStmt*> stmts;
 };
 
-struct NodeStmtMoveOn
+struct NodeStmtServe
 {
     NodeScope* scope;
 };
 
-struct NodeStmtOrMaybe
-{
-    NodeExpr* condition;
-    NodeScope* scope;
-};
-
-struct NodeStmtMaybe
-{
-    NodeExpr* condition;
-    NodeScope* scope;
-    std::vector<NodeStmtOrMaybe*> elifs;
-    std::optional<NodeStmtMoveOn*> else_stmt;
-};
-
-struct NodeStmtWait
+struct NodeStmtRetaste
 {
     NodeExpr* condition;
     NodeScope* scope;
 };
 
-
-struct NodeStmtDillusion{
-    Token ident;
-    NodeExpr* expr;
+struct NodeStmtTaste
+{
+    NodeExpr* condition;
+    NodeScope* scope;
+    std::vector<NodeStmtRetaste*> elifs;
+    std::optional<NodeStmtServe*> else_stmt;
 };
 
-struct NodeStmtTellMe{
+struct NodeStmtSimmer
+{
+    NodeExpr* condition;
+    NodeScope* scope;
+};
+
+
+struct NodeStmtPlate{
     NodeExpr* expr;
 };
 
@@ -144,7 +139,11 @@ struct NodeStmtAssign{
     NodeExpr* expr;
 };
 
-struct NodeStmtThen{
+struct NodeStmtRest{
+};
+
+struct NodeStmtFinish{
+    NodeExpr* expr;
 };
 
 
@@ -152,11 +151,11 @@ struct NodeFuncDef{
     Token name;
     std::vector<std::pair<Token, Token>> args; // Type, Name
     NodeScope* scope;
-    Token return_type; // hope or dillusion
+    Token return_type; // recipe
 };
 
 struct NodeStmt{
-    std::variant<NodeStmtExit*, NodeStmtHope*, NodeStmtDillusion*, NodeStmtTellMe*, NodeStmtMaybe*, NodeStmtMoveOn*, NodeStmtWait*, NodeStmtOrMaybe*, NodeScope*, NodeStmtAssign*, NodeStmtThen*, NodeFuncDef*> var;
+    std::variant<NodeStmtKitchenClosed*, NodeStmtIngredient*, NodeStmtPlate*, NodeStmtTaste*, NodeStmtServe*, NodeStmtSimmer*, NodeStmtRetaste*, NodeScope*, NodeStmtAssign*, NodeStmtRest*, NodeFuncDef*, NodeStmtFinish*> var;
 };
 
 struct NodeProgram{
@@ -415,12 +414,12 @@ class Parser {
 
         std::optional<NodeStmt> parse_stmt()
         {
-            if(peek().has_value() && peek().value().type==TokenType::bye && peek(1).has_value() && peek(1).value().type==TokenType::open_paren)
+            if(peek().has_value() && peek().value().type==TokenType::kitchen_closed && peek(1).has_value() && peek(1).value().type==TokenType::open_paren)
             {
                 consume();
                 consume();
-                auto stmt_exit = m_alloc.alloc<NodeStmtExit>();
-                if(auto node_expr=parse_expr()) //parsing expression after 'bye' token
+                auto stmt_exit = m_alloc.alloc<NodeStmtKitchenClosed>();
+                if(auto node_expr=parse_expr()) //parsing expression after 'kitchen_closed' token
                 {
                     stmt_exit->expr=node_expr.value();
                 }
@@ -431,136 +430,81 @@ class Parser {
                 try_consume(TokenType::semi, "expecting semicolon ';'");
                 return NodeStmt{.var=stmt_exit};
             }
-
-            else if(peek().has_value() && peek().value().type == TokenType::hope && peek(1).has_value() && peek(1).value().type==TokenType::ident)
+            else if(peek().has_value() && peek().value().type==TokenType::finish && peek(1).has_value() && peek(1).value().type==TokenType::open_paren)
             {
-                // Look ahead for '(' (Func Def) or '=' (Var Decl)
-                if(peek(2).has_value() && peek(2).value().type==TokenType::open_paren)
+                consume();
+                consume();
+                auto stmt_finish = m_alloc.alloc<NodeStmtFinish>();
+                if(auto node_expr=parse_expr())
                 {
-                    // Function Definition: hope name ( ...
-                    Token ret_type = consume(); // hope
-                    Token name = consume(); // ident
-                    consume(); // open_paren
-                    
-                    auto func_def = m_alloc.alloc<NodeFuncDef>();
-                    func_def->return_type = ret_type;
-                    func_def->name = name;
-                    
-                    if(!try_consume(TokenType::close_paren))
-                    {
-                        while(true)
-                        {
-                            Token type_tok;
-                            if(peek().has_value() && (peek().value().type==TokenType::hope || peek().value().type==TokenType::dillusion))
-                            {
-                                type_tok = consume();
-                            }
-                            else
-                            {
-                                error("Expected type (hope/dillusion) in function arguments");
-                            }
-                            
-                            Token arg_name = try_consume(TokenType::ident, "Expected argument name");
-                            func_def->args.push_back({type_tok, arg_name});
-
-                            if(try_consume(TokenType::close_paren)) break;
-                            try_consume(TokenType::comma, "Expected ',' or ')' in parameter list");
-                        }
-                    }
-                    
-                    if(auto scope = parse_scope())
-                    {
-                        func_def->scope = scope.value();
-                    }
-                    else
-                    {
-                        error("Expected scope block for function definition");
-                    }
-                    return NodeStmt{.var=func_def};
+                    stmt_finish->expr=node_expr.value();
                 }
-                else if(peek(2).has_value() && peek(2).value().type==TokenType::eq)
-                {
-                    // Variable Declaration: hope name = ...
-                    consume(); // consume 'hope' keyword
-                    auto stmt_hope = m_alloc.alloc<NodeStmtHope>();
-                    stmt_hope->ident=consume(); // consume identifier
-                    consume(); // consume '='
-                    if(auto expr=parse_expr()) //parsing expression after 'hope' token
-                    {
-                        stmt_hope->expr=expr.value();
-                    }
-                    else{
-                        error("Invalid Expression after 'hope'");
-                    }
-                    try_consume(TokenType::semi, "expecting semicolon ';'"); 
-                    return NodeStmt{.var=stmt_hope};
+                else{
+                    error("Invalid expression in finish()");
                 }
+                try_consume(TokenType::close_paren, "expecting close parenthesis ')'");
+                try_consume(TokenType::semi, "expecting semicolon ';'");
+                return NodeStmt{.var=stmt_finish};
             }
-
-            else if(peek().has_value() && peek().value().type == TokenType::dillusion && peek(1).has_value() && peek(1).value().type==TokenType::ident)
+            else if(peek().has_value() && peek().value().type == TokenType::recipe)
             {
-                 // Look ahead for '(' (Func Def) or '=' (Var Decl)
-                if(peek(2).has_value() && peek(2).value().type==TokenType::open_paren)
+                // Function Definition: recipe name ( ...
+                Token ret_type = consume(); // recipe keyword
+                Token name = try_consume(TokenType::ident, "Expected function name");
+                try_consume(TokenType::open_paren, "Expected '(' after function name");
+                
+                auto func_def = m_alloc.alloc<NodeFuncDef>();
+                func_def->return_type = ret_type;
+                func_def->name = name;
+                
+                if(!try_consume(TokenType::close_paren))
                 {
-                    // Function Definition: dillusion name ( ...
-                    Token ret_type = consume(); // dillusion
-                    Token name = consume(); // ident
-                    consume(); // open_paren
-                    
-                    auto func_def = m_alloc.alloc<NodeFuncDef>();
-                    func_def->return_type = ret_type;
-                    func_def->name = name;
-                    
-                    if(!try_consume(TokenType::close_paren))
+                    while(true)
                     {
-                        while(true)
+                        Token type_tok;
+                        if(peek().has_value() && peek().value().type==TokenType::ingredient)
                         {
-                            Token type_tok;
-                            if(peek().has_value() && (peek().value().type==TokenType::hope || peek().value().type==TokenType::dillusion))
-                            {
-                                type_tok = consume();
-                            }
-                            else
-                            {
-                                error("Expected type (hope/dillusion) in function arguments");
-                            }
-                            
-                            Token arg_name = try_consume(TokenType::ident, "Expected argument name");
-                            func_def->args.push_back({type_tok, arg_name});
-
-                            if(try_consume(TokenType::close_paren)) break;
-                            try_consume(TokenType::comma, "Expected ',' or ')' in parameter list");
+                            type_tok = consume();
                         }
-                    }
-                    
-                    if(auto scope = parse_scope())
-                    {
-                        func_def->scope = scope.value();
-                    }
-                    else
-                    {
-                        error("Expected scope block for function definition");
-                    }
-                    return NodeStmt{.var=func_def};
-                }
-                else if(peek(2).has_value() && peek(2).value().type==TokenType::eq)
-                {
-                    consume(); // consume 'dillusion' keyword
-                    auto stmt_dillusion = m_alloc.alloc<NodeStmtDillusion>();
-                    stmt_dillusion->ident=consume(); // consume identifier
-                    consume(); // consume '='
-                    
-                    if(auto expr=parse_expr()) //parsing expression after 'dillusion' token
-                    {
-                        stmt_dillusion->expr=expr.value();
-                    }
-                    else{
-                        error("Invalid Expression after 'dillusion'");
-                    }
+                        else
+                        {
+                            error("Expected 'ingredient' in function arguments");
+                        }
+                        
+                        Token arg_name = try_consume(TokenType::ident, "Expected argument name");
+                        func_def->args.push_back({type_tok, arg_name});
 
-                    try_consume(TokenType::semi, "expecting semicolon ';'"); 
-                    return NodeStmt{.var=stmt_dillusion};
+                        if(try_consume(TokenType::close_paren)) break;
+                        try_consume(TokenType::comma, "Expected ',' or ')' in parameter list");
+                    }
                 }
+                
+                if(auto scope = parse_scope())
+                {
+                    func_def->scope = scope.value();
+                }
+                else
+                {
+                    error("Expected scope block for function definition");
+                }
+                return NodeStmt{.var=func_def};
+            }
+            else if(peek().has_value() && peek().value().type == TokenType::ingredient && peek(1).has_value() && peek(1).value().type==TokenType::ident)
+            {
+                // Variable Declaration: ingredient name = ...
+                consume(); // consume 'ingredient' keyword
+                auto stmt_ingredient = m_alloc.alloc<NodeStmtIngredient>();
+                stmt_ingredient->ident=consume(); // consume identifier
+                consume(); // consume '='
+                if(auto expr=parse_expr()) //parsing expression after 'ingredient' token
+                {
+                    stmt_ingredient->expr=expr.value();
+                }
+                else{
+                    error("Invalid Expression after 'ingredient'");
+                }
+                try_consume(TokenType::semi, "expecting semicolon ';'"); 
+                return NodeStmt{.var=stmt_ingredient};
             }
             else if(peek().has_value() && peek().value().type == TokenType::open_curly)
             {
@@ -573,104 +517,104 @@ class Parser {
                     error("Invalid scope");
                 }
             }
-            else if(peek().has_value() && peek().value().type == TokenType::tell_me && peek(1).has_value() && peek(1).value().type==TokenType::open_paren)
+            else if(peek().has_value() && peek().value().type == TokenType::plate && peek(1).has_value() && peek(1).value().type==TokenType::open_paren)
             {
-                consume(); // consume 'tell_me' keyword
+                consume(); // consume 'plate' keyword
                 consume(); // consume '('
-                auto stmt_tell_me = m_alloc.alloc<NodeStmtTellMe>();
-                if(auto expr=parse_expr()) //parsing expression after 'tell_me' token
+                auto stmt_plate = m_alloc.alloc<NodeStmtPlate>();
+                if(auto expr=parse_expr()) //parsing expression after 'plate' token
                 {
-                    stmt_tell_me->expr=expr.value();
+                    stmt_plate->expr=expr.value();
                 }
                 else{
-                    error("Invalid Expression after 'tell_me'");
+                    error("Invalid Expression after 'plate'");
                 }
                 try_consume(TokenType::close_paren, "expecting close parenthesis ')'");
                 try_consume(TokenType::semi, "expecting semicolon ';'"); 
-                return NodeStmt{.var=stmt_tell_me};
+                return NodeStmt{.var=stmt_plate};
             }
-            else if(auto maybe = try_consume(TokenType::maybe))
+            else if(auto taste = try_consume(TokenType::taste))
             {
-                try_consume(TokenType::open_paren,"Expected '(' after 'maybe'");
-                auto stmt_maybe = m_alloc.alloc<NodeStmtMaybe>();
+                try_consume(TokenType::open_paren,"Expected '(' after 'taste'");
+                auto stmt_taste = m_alloc.alloc<NodeStmtTaste>();
                 if(auto expr = parse_expr())
                 {
-                    stmt_maybe->condition=expr.value();
+                    stmt_taste->condition=expr.value();
                 }else
                 {
                     error("Invalid expression inside parentheses");
                 }
-                try_consume(TokenType::close_paren,"Expected ')' after 'maybe'");
+                try_consume(TokenType::close_paren,"Expected ')' after 'taste'");
                 if(auto scope = parse_scope())
                 {
-                    stmt_maybe->scope=scope.value();
+                    stmt_taste->scope=scope.value();
                 }
                 else{
-                    error("Invalid scope inside 'maybe'");
+                    error("Invalid scope inside 'taste'");
                 }
 
-                // Check for elifs (ormaybe)
-                while(auto or_maybe_tok = try_consume(TokenType::ormaybe))
+                // Check for elifs (retaste)
+                while(auto retaste_tok = try_consume(TokenType::retaste))
                 {
-                    try_consume(TokenType::open_paren,"Expected '(' after 'ormaybe'");
-                    auto stmt_or_maybe = m_alloc.alloc<NodeStmtOrMaybe>();
+                    try_consume(TokenType::open_paren,"Expected '(' after 'retaste'");
+                    auto stmt_retaste = m_alloc.alloc<NodeStmtRetaste>();
                     if(auto expr = parse_expr())
                     {
-                        stmt_or_maybe->condition=expr.value();
+                        stmt_retaste->condition=expr.value();
                     }else
                     {
                         error("Invalid expression inside parentheses");
                     }
-                    try_consume(TokenType::close_paren,"Expected ')' after 'ormaybe'");
+                    try_consume(TokenType::close_paren,"Expected ')' after 'retaste'");
                     if(auto scope = parse_scope())
                     {
-                        stmt_or_maybe->scope=scope.value();
+                        stmt_retaste->scope=scope.value();
                     }
                     else{
-                        error("Invalid scope inside 'ormaybe'");
+                        error("Invalid scope inside 'retaste'");
                     }
-                    stmt_maybe->elifs.push_back(stmt_or_maybe);
+                    stmt_taste->elifs.push_back(stmt_retaste);
                 }
 
-                // Check for else (moveon)
-                if(auto move_on_tok = try_consume(TokenType::moveon))
+                // Check for else (serve)
+                if(auto serve_tok = try_consume(TokenType::serve))
                 {
-                    auto stmt_move_on = m_alloc.alloc<NodeStmtMoveOn>();
+                    auto stmt_serve = m_alloc.alloc<NodeStmtServe>();
                     if(auto scope = parse_scope())
                     {
-                        stmt_move_on->scope=scope.value();
+                        stmt_serve->scope=scope.value();
                     }
                     else{
-                        error("Invalid scope inside 'moveon'");
+                        error("Invalid scope inside 'serve'");
                     }
-                    stmt_maybe->else_stmt = stmt_move_on;
+                    stmt_taste->else_stmt = stmt_serve;
                 }
 
                 auto stmt=m_alloc.alloc<NodeStmt>();
-                stmt->var=stmt_maybe;
+                stmt->var=stmt_taste;
                 return *stmt;
             }
-            else if(auto wait = try_consume(TokenType::wait))
+            else if(auto simmer = try_consume(TokenType::simmer))
             {
-                try_consume(TokenType::open_paren,"Expected '(' after 'wait'");
-                auto stmt_wait = m_alloc.alloc<NodeStmtWait>();
+                try_consume(TokenType::open_paren,"Expected '(' after 'simmer'");
+                auto stmt_simmer = m_alloc.alloc<NodeStmtSimmer>();
                 if(auto expr = parse_expr())
                 {
-                    stmt_wait->condition=expr.value();
+                    stmt_simmer->condition=expr.value();
                 }else
                 {
                     error("Invalid expression inside parentheses");
                 }
-                try_consume(TokenType::close_paren,"Expected ')' after 'wait'");
+                try_consume(TokenType::close_paren,"Expected ')' after 'simmer'");
                 if(auto scope = parse_scope())
                 {
-                    stmt_wait->scope=scope.value();
+                    stmt_simmer->scope=scope.value();
                 }
                 else{
-                    error("Invalid scope inside 'wait'");
+                    error("Invalid scope inside 'simmer'");
                 }
                 auto stmt=m_alloc.alloc<NodeStmt>();
-                stmt->var=stmt_wait;
+                stmt->var=stmt_simmer;
                 return *stmt;
             }
             else if(peek().has_value() && peek().value().type==TokenType::ident && peek(1).has_value() && peek(1).value().type==TokenType::eq)
@@ -688,11 +632,11 @@ class Parser {
                 try_consume(TokenType::semi, "expecting semicolon ';'");
                 return NodeStmt{.var=stmt_assign};
             }
-            else if(auto then_tok=try_consume(TokenType::then_tok))
+            else if(auto rest_tok=try_consume(TokenType::rest))
             {
                try_consume(TokenType::semi, "expecting semicolon ';'");
-               auto stmt_then = m_alloc.alloc<NodeStmtThen>();
-               return NodeStmt{.var=stmt_then}; 
+               auto stmt_rest = m_alloc.alloc<NodeStmtRest>();
+               return NodeStmt{.var=stmt_rest}; 
             }
             
             return {};

@@ -63,7 +63,7 @@ CMAKE_BINARY_DIR = /home/kushagra-pandey/Desktop/CODE/Baby-Programming-Language/
 # Directory level rules for the build root directory
 
 # The main recursive "all" target.
-all: CMakeFiles/baby.dir/all
+all: CMakeFiles/cook.dir/all
 .PHONY : all
 
 # The main recursive "preinstall" target.
@@ -71,34 +71,34 @@ preinstall:
 .PHONY : preinstall
 
 # The main recursive "clean" target.
-clean: CMakeFiles/baby.dir/clean
+clean: CMakeFiles/cook.dir/clean
 .PHONY : clean
 
 #=============================================================================
-# Target rules for target CMakeFiles/baby.dir
+# Target rules for target CMakeFiles/cook.dir
 
 # All Build rule for target.
-CMakeFiles/baby.dir/all:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/baby.dir/build.make CMakeFiles/baby.dir/depend
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/baby.dir/build.make CMakeFiles/baby.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/kushagra-pandey/Desktop/CODE/Baby-Programming-Language/build/CMakeFiles --progress-num=1,2 "Built target baby"
-.PHONY : CMakeFiles/baby.dir/all
+CMakeFiles/cook.dir/all:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/cook.dir/build.make CMakeFiles/cook.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/cook.dir/build.make CMakeFiles/cook.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/kushagra-pandey/Desktop/CODE/Baby-Programming-Language/build/CMakeFiles --progress-num=1,2 "Built target cook"
+.PHONY : CMakeFiles/cook.dir/all
 
 # Build rule for subdir invocation for target.
-CMakeFiles/baby.dir/rule: cmake_check_build_system
+CMakeFiles/cook.dir/rule: cmake_check_build_system
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/kushagra-pandey/Desktop/CODE/Baby-Programming-Language/build/CMakeFiles 2
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/baby.dir/all
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/cook.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/kushagra-pandey/Desktop/CODE/Baby-Programming-Language/build/CMakeFiles 0
-.PHONY : CMakeFiles/baby.dir/rule
+.PHONY : CMakeFiles/cook.dir/rule
 
 # Convenience name for target.
-baby: CMakeFiles/baby.dir/rule
-.PHONY : baby
+cook: CMakeFiles/cook.dir/rule
+.PHONY : cook
 
 # clean rule for target.
-CMakeFiles/baby.dir/clean:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/baby.dir/build.make CMakeFiles/baby.dir/clean
-.PHONY : CMakeFiles/baby.dir/clean
+CMakeFiles/cook.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/cook.dir/build.make CMakeFiles/cook.dir/clean
+.PHONY : CMakeFiles/cook.dir/clean
 
 #=============================================================================
 # Special targets to cleanup operation of make.

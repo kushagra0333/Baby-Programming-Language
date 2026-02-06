@@ -14,8 +14,8 @@
 int main(int argc, char* argv[]) { //args tells the total size of command line arguments & argv is an array of character pointers listing all the arguments
     if(argc < 2 )
     {
-        std::cerr<<"you enter wrong less number of arguments"<<std::endl;
-        std::cerr<<"baby <input.by>"<<std::endl;
+        std::cerr<<"You entered incorrect number of arguments"<<std::endl;
+        std::cerr<<"cook <input.cook>"<<std::endl;
         return EXIT_FAILURE;
     }
     
