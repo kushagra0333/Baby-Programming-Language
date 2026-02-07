@@ -329,6 +329,7 @@ button:active {
   font-size: 0.9rem;
   line-height: 1.6;
   color: var(--text-primary);
+  text-align: left;
 }
 
 .output-content.error {
